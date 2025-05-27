@@ -1,48 +1,60 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stddef.h>
+#include <unistd.h>
 #include "schedule_rr_p.h"
 #include "list.h"
 #include "cpu.h"
+#include "timer.h"
+#define MAX_PRIORITY 1
+#define MIN_PRIORITY 5
 
-struct node *taskList[MIN_PRIORITIES + 1] = { NULL };
 
-// add a task to the list 
-void add(char *name, int priority, int burst){
-    Task *newTask = malloc(sizeof(Task));
-    newTask->name = name;
-    newTask->priority = priority;
-    newTask->burst = burst;
-    insert(&taskList[priority], newTask);
+struct node *taskList[MIN_PRIORITY] = { NULL };
+
+// Adiciona uma nova tarefa a fila
+void add(char *name, int priority, int burst) {
+   Task *newTask = malloc(sizeof(Task));
+   newTask->name = strdup(name);
+   newTask->priority = priority;
+   newTask->burst = burst;
+   newTask->deadline = 0; // Não utilizado neste método
+   newTask->wait_time = 0; // Não utilizado neste método
+   insert(&taskList[priority - 1], newTask);
 }
 
-// invoke the scheduler
-void schedule(){
-   struct node *nav;
+// Chama o escalonador
+void schedule() {
+   timer_start();
+   //struct node *nav;
    while (1) {
       int p;
-
-      for (p = 1; p <= MIN_PRIORITIES; p++) { // encontra a fila de maior prioridade não vazia
-         if (taskList[p] != NULL) 
+      for (p = MAX_PRIORITY; p <= MIN_PRIORITY; p++) { // Encontra a fila de maior prioridade não vazia
+         if (taskList[p - 1] != NULL) 
             break;
       }
 
-      if (p > MIN_PRIORITIES) { // todas as filas vazias → fim do escalonamento
+      if (p > MIN_PRIORITY) { // Se todas filas vazia
          break;
       }
-
-      Task *t = taskList[p]->task;
+      
+      int slice;
+      Task *t = taskList[p - 1]->task;
       if (t->burst > QUANTUM) {
          slice = QUANTUM;
       } else {
          slice = t->burst;
       }
       run(t, slice);
+      while (!timer_flag_slice()) {
+         usleep(10000);
+      }
       t->burst -= slice;
-      delete(&taskList[p]);// Remove first position of the queue
+      delete(&taskList[p - 1]); // Remove a primeira tarefa da fila
 
       if (t->burst > 0) {
-         insert(&taskList[p], t); // Insert at the end of the queue
+         insert(&taskList[p - 1], t); // Insere no final da fila (caso ainda não tenha finalizado o burst)
       } else {
          free(t->name);
          free(t);

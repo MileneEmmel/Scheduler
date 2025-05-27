@@ -1,55 +1,52 @@
-/**
- * Driver.c
- *
- * Schedule is in the format
- *
- *  [name] [priority] [CPU burst]
- */
+// Driver.c
+// Schedule is in the format [name] [priority] [CPU burst]
+// gcc -pthread driver.c list.c cpu.c timer.c schedule_rr.c -o scheduler_rr
+// ./scheduler_rr rr-schedule.txt
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include <stddef.h>
 #include "task.h"
 #include "list.h"
-#include "schedule_rr_p.h"
-#include "schedule_edf.h"
+#include "timer.h"
 
-#define SIZE    100
+ #include "schedule_rr.h"
+//#include "schedule_pa.h"
+// #include "schedule_rr_p.h"
+// #include "schedule_edf.h"
 
-int main(int argc, char *argv[])
-{
+#define SIZE 100
+
+int main(int argc, char *argv[]) {
     FILE *in;
     char *temp;
     char task[SIZE];
 
     char *name;
-    int priority;
+    //int priority;
     int burst;
-    int deadline;
+    //int deadline;
 
     in = fopen(argv[1],"r");
     
+    timer_start();
     while (fgets(task,SIZE,in) != NULL) {
         temp = strdup(task);
         name = strsep(&temp,",");
-        priority = atoi(strsep(&temp,","));
+       // priority = atoi(strsep(&temp,",")); // RR_P, PA, EDF
         burst = atoi(strsep(&temp,","));
-        //Only to EDF algorithm
-        deadline = atoi(srtsep(&temp, ","));
+        //deadline = atoi(strsep(&temp, ",")); // EDF
 
-        // add the task to the scheduler's list of tasks
-        add(name,priority,burst);
-        //to EDF only
-        add(name,priority,burst, deadline);
+        add(name, burst); // RR
+         //add(name, priority, burst); //RR_P, PA
+        // add(name, priority, burst, deadline); // EDF
 
         free(temp);
     }
 
     fclose(in);
-
-    // invoke the scheduler
+    // timer_get_time()
     schedule();
-
     return 0;
 }

@@ -5,7 +5,7 @@ struct node {
     struct node *next;
 };
 
-// insert and delete operations.
 void insert(struct node **head, Task *task);
+void insert_EDF(struct node **head, Task *newTask);
 void delete(struct node **head);
 void traverse(struct node *head);

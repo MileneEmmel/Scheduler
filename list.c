@@ -1,36 +1,56 @@
-// QUEUE
+// FILA
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <stddef.h>
 #include "list.h"
 #include "task.h"
 
-// Add a new task to the queue of tasks
+// Adiciona uma nova tarefa na fila
 void insert(struct node **head, Task *newTask) {
     struct node *newNode = malloc(sizeof(struct node));
     newNode->task = newTask;
     newNode->next = NULL;
 
-    if (*head == NULL) // Check if queue is empty
-        *head = newNode; // Insert as first (and last) position
+    if (*head == NULL) // Verifica se a fila está vazia
+        *head = newNode; // Insere como primeira (e última) posição
     else {
-        struct node *nav = *head; // Create auxiliar pointer to navigate the queue
+        struct node *nav = *head; // Nó auxiliar para navegar pela fila
         while (nav->next != NULL)
-            nav = nav->next; // Navigate to the last node in the queue
-        nav->next = newNode; // Insert newNode at the end of the queue
+            nav = nav->next; // Percorre até o último nó
+        nav->next = newNode; // Insere newNode no final da fila
     }
 }
 
-// Delete first node of the queue
+// Adiciona uma nova tarefa na fila ordenada por deadline crescente (EDF)
+void insert_EDF(struct node **head, Task *newTask) {
+    struct node *newNode = malloc(sizeof(struct node));
+    newNode->task = newTask;
+    newNode->next = NULL;
+
+    if (*head == NULL || newTask->deadline < (*head)->task->deadline) { // Se fila vazia, ou deadline menor que primeira posição
+        newNode->next = *head; 
+        *head = newNode;
+    } else {
+        struct node *nav = *head; // Nó auxiliar para navegar pela fila
+        while (nav->next != NULL && nav->next->task->deadline <= newTask->deadline) { // Percorre a fila até a posição correta
+            nav = nav->next;
+        }
+        newNode->next = nav->next;
+        nav->next = newNode; // Insere newNode na fila
+    }
+}
+
+// Remove o primeiro nó da fila
 void delete(struct node **head) {
-    if (*head == NULL) // Queue already empty
+    if (*head == NULL) // Verifica se a fila está vazia
         return; 
     struct node *temp = *head;
-    *head = (*head)->next; // Delete first node of the queue
+    *head = (*head)->next; // Remove o primeiro nó da fila
     free(temp);
 }
 
-// Traverse the list
+// Percorre e imprime todos elementos da fila
 void traverse(struct node *head) {
     struct node *temp;
     temp = head;
