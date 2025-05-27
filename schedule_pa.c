@@ -23,6 +23,7 @@ void aging() {
             t->wait_time++; // Aumenta o tempo de espera
 
             if (p > 0 && t->wait_time >= AGING_LIMIT) { // Se atingir limite de espera, aumenta a prioridade
+                printf("[AGING] Tarefa %s envelheceu: prioridade %d -> %d após %d de espera\n", t->name, p+1, p, t->wait_time);
                 struct node *up = nav; // Tarefa a ter prioridade aumentada
 
                 if (prev == NULL) { // Se é o primeiro nó da fila
